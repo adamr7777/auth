@@ -21,7 +21,7 @@ const handleLogin = async (req, res) => {
     const match = await bcrypt.compare(pwd, foundUser.password);
     if (match) {
         // create JWTs
-        const ACCESS_TOKEN = jwt.sign({"username": foundUser.username}, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '15s'});
+        const ACCESS_TOKEN = jwt.sign({"username": foundUser.username}, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '30s'});
         const REFRESH_TOKEN = jwt.sign({"username": foundUser.username}, process.env.REFRESH_TOKEN_SECRET, {expiresIn: '1d'});
        
         const currentUser = {...foundUser, REFRESH_TOKEN};
@@ -30,8 +30,8 @@ const handleLogin = async (req, res) => {
 
         await fsPromises.writeFile(path.join(__dirname, '..', 'model', 'users.json'), JSON.stringify(usersDB.users));
     
+        res.cookie('jwt', REFRESH_TOKEN, {httpOnly: true, sameSite: 'None', secure: true, maxAge: 24 * 60 * 60 * 1000})
         res.json({ACCESS_TOKEN});
-        res.cookie('JWT', REFRESH_TOKEN, {httpOnly: true, maxAge: 1000 * 60 * 60 * 24})
     } else {
         res.sendStatus(401);
     }

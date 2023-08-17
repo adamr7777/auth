@@ -6,7 +6,12 @@ const cors = require('cors');
 const corsOptions = require('./config/corsOptions');
 const { logger } = require('./middleware/logEvents');
 const errorHandler = require('./middleware/errorHandler');
+const verifyJWT = require('./middleware/verifyJWT');
+
 const PORT = process.env.PORT || 5000;
+
+
+
 
 // custom middleware logger
 app.use(logger);
@@ -20,6 +25,8 @@ app.use(express.urlencoded({ extended: false }));
 // built-in middleware for json 
 app.use(express.json());
 
+app.use(require('cookie-parser')());
+
 //serve static files
 app.use('/', express.static(path.join(__dirname, '/public')));
 
@@ -27,6 +34,8 @@ app.use('/', express.static(path.join(__dirname, '/public')));
 app.use('/', require('./routes/root'));
 app.use('/register', require('./routes/register'));
 app.use('/auth', require('./routes/auth'));
+app.use('/refresh', require('./routes/refresh'));
+app.use('/employees', verifyJWT);
 app.use('/employees', require('./routes/api/employees'));
 
 app.all('*', (req, res) => {
@@ -39,6 +48,7 @@ app.all('*', (req, res) => {
         res.type('txt').send("404 Not Found");
     }
 });
+
 
 app.use(errorHandler);
 
